@@ -47,30 +47,12 @@ class DGPS(nn.Module):
             nn.ReLU(),
             nn.Linear(hidden_size, hidden_size),).to(self.device)
 
-        self.enc_embedk = nn.Sequential(
-            nn.Linear(enc_size, hidden_size),
-            nn.ReLU(),
-            nn.Linear(hidden_size, hidden_size), ).to(self.device)
-
-        self.enc_embedv = nn.Sequential(
-            nn.Linear(enc_size, hidden_size),
-            nn.ReLU(),
-            nn.Linear(hidden_size, hidden_size), ).to(self.device)
 
         self.enc_embed2 = nn.Sequential(
             nn.Linear(enc_size, hidden_size),
             nn.ReLU(),
             nn.Linear(hidden_size, hidden_size),).to(self.device)
 
-        self.enc_embed2k = nn.Sequential(
-            nn.Linear(enc_size, hidden_size),
-            nn.ReLU(),
-            nn.Linear(hidden_size, hidden_size), ).to(self.device)
-
-        self.enc_embed2v = nn.Sequential(
-            nn.Linear(enc_size, hidden_size),
-            nn.ReLU(),
-            nn.Linear(hidden_size, hidden_size), ).to(self.device)
 
         #self.enc_embed = nn.Linear(Ksignum, hidden_size).to(self.device)
         #self.enc_embed2 = nn.Linear(Ksignum, hidden_size).to(self.device)
@@ -145,32 +127,24 @@ class DGPS(nn.Module):
                   list(self.Kthetaf.parameters()) + list(self.Kthetag.parameters()) + list(self.Kthetaj0.parameters()) + [self.ctheta]
         self.optimizer = torch.optim.Adam(netlist, lr = gamma)
         a_list = list(self.enc_self_attn.parameters()) + list(self.pos_ffn.parameters()) + list(
-            self.enc_embed.parameters()) + list(self.enc_embedk.parameters()) + list(self.enc_embedv.parameters())
+            self.enc_embed.parameters())
         self.optimizer2 = torch.optim.Adam(a_list, lr=5e-4)
 
         b_list = list(self.enc_self_attn2.parameters()) + list(self.pos_ffn2.parameters()) + list(
-            self.enc_embed2.parameters()) + list(
-            self.enc_embed2k.parameters()) + list(
-            self.enc_embed2v.parameters())
+            self.enc_embed2.parameters())
         self.optimizer3 = torch.optim.Adam(b_list, lr=5e-4)
 
 
     def forward_attn(self, enc_inputs):
         enc_embed = self.enc_embed(enc_inputs).unsqueeze(0)
-        enc_embedk = self.enc_embedk(enc_inputs).unsqueeze(0)
-        enc_embedv = self.enc_embedv(enc_inputs).unsqueeze(0)
         enc_embed_q = enc_embed + 1 * self.pos_encoding_table.unsqueeze(0)
-        enc_embed_k = enc_embedk + 1 * self.pos_encoding_table.unsqueeze(0)
         enc_outputs, attn = self.enc_self_attn(enc_embed_q, enc_embed_q, enc_embed)
         enc_outputs = self.pos_ffn(enc_outputs.squeeze(0))
         return enc_outputs, attn
 
     def forward_attn2(self, enc_inputs):
         enc_embed = self.enc_embed2(enc_inputs).unsqueeze(0)
-        enc_embedk = self.enc_embed2k(enc_inputs).unsqueeze(0)
-        enc_embedv = self.enc_embed2v(enc_inputs).unsqueeze(0)
         enc_embed_q = enc_embed + 1 * self.pos_encoding_table.unsqueeze(0)
-        enc_embed_k = enc_embedk + 1 * self.pos_encoding_table.unsqueeze(0)
         enc_outputs, attn = self.enc_self_attn2(enc_embed_q, enc_embed_q, enc_embed)
         enc_outputs = self.pos_ffn2(enc_outputs.squeeze(0))
         return enc_outputs, attn
