@@ -1,7 +1,6 @@
 import pybullet as p
 from kuka import Kuka
 from ddp_agent import DGPS
-from baseline_SAC.py import SAC_agent
 import numpy as np
 import time
 import matplotlib.pyplot as plt
